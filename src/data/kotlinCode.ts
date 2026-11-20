@@ -48,6 +48,7 @@ fun MiAgendaScreen() {
     var dateInput by remember { mutableStateOf(LocalDate.now().toString()) }
     var selectedPriority by remember { mutableStateOf(Priority.Media) }
     var searchQuery by remember { mutableStateOf("") }
+    var priorityFilter by remember { mutableStateOf("Todas") } // Todas, Alta, Media, Baja
     var activities by remember { mutableStateOf(listOf<ActivityItem>()) }
     var errorMessage by remember { mutableStateOf(false) }
     var nextId by remember { mutableStateOf(1) }
@@ -57,7 +58,9 @@ fun MiAgendaScreen() {
     var editDate by remember { mutableStateOf("") }
 
     val filteredActivities = activities.filter { item ->
-        item.text.contains(searchQuery, ignoreCase = true)
+        val matchesSearch = item.text.contains(searchQuery, ignoreCase = true)
+        val matchesPriority = priorityFilter == "Todas" || item.priority.name == priorityFilter
+        matchesSearch && matchesPriority
     }
 
     Scaffold(
@@ -138,6 +141,21 @@ fun MiAgendaScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
+            // Selector de filtro por prioridad
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf("Todas", "Alta", "Media", "Baja").forEach { filter ->
+                    FilterChip(
+                        selected = priorityFilter == filter,
+                        onClick = { priorityFilter = filter },
+                        label = { Text(filter) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

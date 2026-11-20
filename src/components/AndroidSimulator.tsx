@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Check, Trash2, Smartphone, Code, FileText, AlertCircle, Calendar as CalendarIcon, Edit3, X, Search } from 'lucide-react';
+import { Plus, Check, Trash2, Smartphone, Code, FileText, AlertCircle, Calendar as CalendarIcon, Edit3, X, Search, Filter } from 'lucide-react';
 import { KOTLIN_SOURCE_CODE } from '../data/kotlinCode';
 
 type Priority = 'Baja' | 'Media' | 'Alta';
+type PriorityFilter = 'Todas' | 'Alta' | 'Media' | 'Baja';
 
 interface ActivityItem {
   id: string;
@@ -24,6 +25,7 @@ export const AndroidSimulator: React.FC = () => {
   const [inputDate, setInputDate] = useState(getTodayString());
   const [inputPriority, setInputPriority] = useState<Priority>('Media');
   const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('Todas');
   const [errorMessage, setErrorMessage] = useState('');
   
   // Edit state
@@ -84,9 +86,11 @@ export const AndroidSimulator: React.FC = () => {
     setEditingActivity(null);
   };
 
-  const filteredActivities = activities.filter((item) =>
-    item.text.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredActivities = activities.filter((item) => {
+    const matchesSearch = item.text.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPriority = priorityFilter === 'Todas' || item.priority === priorityFilter;
+    return matchesSearch && matchesPriority;
+  });
 
   const getPriorityBadgeColor = (priority: Priority) => {
     switch (priority) {
@@ -111,7 +115,7 @@ export const AndroidSimulator: React.FC = () => {
         </div>
         <h2 className="text-2xl font-bold mb-2">Mi Agenda — Kotlin & Jetpack Compose</h2>
         <p className="text-emerald-100 text-sm leading-relaxed">
-          Aplicación actualizada con barra de búsqueda en tiempo real para filtrar actividades por su nombre.
+          Aplicación actualizada con barra de búsqueda y selector de filtros por prioridad (Todas, Alta, Media, Baja).
         </p>
       </div>
 
@@ -157,11 +161,11 @@ export const AndroidSimulator: React.FC = () => {
           {/* Phone Frame */}
           <div className="w-full max-w-[380px] bg-slate-900 dark:bg-slate-950 rounded-[48px] p-4 shadow-2xl border-[6px] border-slate-800">
             {/* Phone Screen */}
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-[36px] overflow-hidden flex flex-col h-[720px] text-slate-900 dark:text-slate-100 shadow-inner relative">
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-[36px] overflow-hidden flex flex-col h-[740px] text-slate-900 dark:text-slate-100 shadow-inner relative">
               
               {/* Android Status Bar */}
               <div className="bg-emerald-700 text-white px-6 py-2 text-xs flex justify-between items-center font-mono">
-                <span>09:50</span>
+                <span>06:36</span>
                 <span className="text-[10px] bg-emerald-800 px-2 py-0.5 rounded">Android 15 · Jetpack Compose</span>
               </div>
 
@@ -231,16 +235,33 @@ export const AndroidSimulator: React.FC = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar actividad en tiempo real..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
+                    placeholder="Buscar actividad..."
+                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white"
                   />
+                </div>
+
+                {/* Priority Filter Selector (Chips) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1">
+                  {(['Todas', 'Alta', 'Media', 'Baja'] as PriorityFilter[]).map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setPriorityFilter(filter)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                        priorityFilter === filter
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {filter === 'Todas' ? 'Todas' : filter === 'Alta' ? '🔴 Alta' : filter === 'Media' ? '🟡 Media' : '🟢 Baja'}
+                    </button>
+                  ))}
                 </div>
 
                 {/* List of activities */}
                 <div className="flex-1 space-y-2 overflow-y-auto pt-1">
                   {filteredActivities.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400 text-xs">
-                      {searchQuery ? 'No se encontraron actividades con ese nombre.' : 'No hay actividades en la lista.'}
+                    <div className="text-center py-8 text-slate-400 text-xs">
+                      No se encontraron actividades con los filtros seleccionados.
                     </div>
                   ) : (
                     filteredActivities.map((item) => (
@@ -366,7 +387,7 @@ export const AndroidSimulator: React.FC = () => {
             </div>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center">
-            Simulador actualizado con barra de búsqueda en tiempo real.
+            Simulador actualizado con selector de filtros por prioridad.
           </p>
         </div>
       )}
@@ -375,7 +396,7 @@ export const AndroidSimulator: React.FC = () => {
       {activeTab === 'code' && (
         <div className="bg-slate-900 rounded-2xl p-4 text-slate-100 font-mono text-xs overflow-x-auto shadow-xl">
           <div className="flex justify-between items-center pb-3 mb-3 border-b border-slate-800 text-slate-400">
-            <span>MainActivity.kt (Con Búsqueda en Tiempo Real)</span>
+            <span>MainActivity.kt (Con Filtros por Prioridad)</span>
             <button
               onClick={() => navigator.clipboard.writeText(KOTLIN_SOURCE_CODE)}
               className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-sans font-semibold transition-colors"
@@ -393,24 +414,24 @@ export const AndroidSimulator: React.FC = () => {
       {activeTab === 'explanation' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-            Barra de Búsqueda en Tiempo Real con Jetpack Compose
+            Selector de Filtros por Prioridad en Jetpack Compose
           </h3>
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Para filtrar las actividades al instante mientras el usuario escribe:
+            Para filtrar las actividades por su nivel de prioridad (Todas, Alta, Media, Baja):
           </p>
 
           <div className="space-y-3 pt-2">
             <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">1. Estado de Búsqueda (searchQuery)</h4>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">1. Estado de Filtro (`priorityFilter`)</h4>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Se añadió un campo de texto OutlinedTextField en la parte superior de la lista cuya entrada actualiza una variable de estado searchQuery.
+                Se añadió un estado para almacenar la categoría seleccionada por el usuario entre Todas, Alta, Media y Baja.
               </p>
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">2. Filtrado Dinámico (filter)</h4>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">2. Chips de Filtrado y Lógica Combinada</h4>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Mediante la función <code>.filter &#123; item -&gt; item.text.contains(searchQuery, ignoreCase = true) &#125;</code>, la lista muestra únicamente las actividades que coinciden con la búsqueda en tiempo real.
+                Se incluyeron botones tipo chip debajo de la barra de búsqueda. El filtrado combina simultáneamente el texto de búsqueda y el nivel de prioridad seleccionado.
               </p>
             </div>
           </div>
